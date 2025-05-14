@@ -35,7 +35,7 @@ enum FaceValues {
 }
 
 enum ControlValues {
-    //% block="X-Wert"
+    //% block="Joystick X"
     XValue,
     //% block="Steuerung"
     Control
