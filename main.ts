@@ -41,13 +41,6 @@ enum ControlValues {
     Control
 }
 
-enum BarGraphType {
-    //% block="Face-App"
-    FaceApp,
-    //% block="Control"
-    Control
-}
-
 namespace robots {
     // Face-App Variablen
     let face_x = 0
@@ -162,62 +155,72 @@ namespace robots {
     }
 
     /**
-     * Zeigt ein Säulendiagramm mit dem gewählten Wert an
-     * @param type Wähle den App-Typ (Face-App oder Control)
-     * @param valueType Wähle den Wert, der angezeigt werden soll
+     * Zeigt ein Säulendiagramm mit dem gewählten Face-App Wert an
+     * @param valueType Wähle den Face-App Wert, der angezeigt werden soll
      */
-    //% block="zeige Säulendiagramm %type|%valueType"
+    //% block="zeige Säulendiagramm für Face-App Wert %valueType"
     //% weight=60
-    export function showBarGraph(type: BarGraphType, valueType: any): void {
+    export function showFaceBarGraph(valueType: FaceValues): void {
         let valueToShow = 0
         let maxValue = 100
         
-        if (type === BarGraphType.FaceApp) {
-            switch (valueType) {
-                case FaceValues.X:
-                    valueToShow = face_x
-                    break
-                case FaceValues.Y:
-                    valueToShow = face_y
-                    break
-                case FaceValues.Z:
-                    valueToShow = face_z
-                    break
-                case FaceValues.Yaw:
-                    valueToShow = face_yaw
-                    break
-                case FaceValues.Pitch:
-                    valueToShow = face_pitch
-                    break
-                case FaceValues.Mouth:
-                    valueToShow = face_mouth
-                    break
-                case FaceValues.LeftEye:
-                    valueToShow = face_left_eye
-                    break
-                case FaceValues.RightEye:
-                    valueToShow = face_right_eye
-                    break
-                case FaceValues.Roll:
-                    valueToShow = face_roll
-                    break
-                case FaceValues.Smile:
-                    valueToShow = face_smile
-                    break
-                case FaceValues.FaceVisible:
-                    valueToShow = face_visible
-                    break
-            }
-        } else if (type === BarGraphType.Control) {
-            switch (valueType) {
-                case ControlValues.XValue:
-                    valueToShow = control_x_value
-                    maxValue = 180
-                    break
-                case ControlValues.Control:
-                    valueToShow = control_value
-                    break
-            }
+        switch (valueType) {
+            case FaceValues.X:
+                valueToShow = face_x
+                break
+            case FaceValues.Y:
+                valueToShow = face_y
+                break
+            case FaceValues.Z:
+                valueToShow = face_z
+                break
+            case FaceValues.Yaw:
+                valueToShow = face_yaw
+                break
+            case FaceValues.Pitch:
+                valueToShow = face_pitch
+                break
+            case FaceValues.Mouth:
+                valueToShow = face_mouth
+                break
+            case FaceValues.LeftEye:
+                valueToShow = face_left_eye
+                break
+            case FaceValues.RightEye:
+                valueToShow = face_right_eye
+                break
+            case FaceValues.Roll:
+                valueToShow = face_roll
+                break
+            case FaceValues.Smile:
+                valueToShow = face_smile
+                break
+            case FaceValues.FaceVisible:
+                valueToShow = face_visible
+                break
+        }
+        
+        led.plotBarGraph(valueToShow, maxValue)
+    }
+
+    /**
+     * Zeigt ein Säulendiagramm mit dem gewählten Control Wert an
+     * @param valueType Wähle den Control Wert, der angezeigt werden soll
+     */
+    //% block="zeige Säulendiagramm für Control Wert %valueType"
+    //% weight=55
+    export function showControlBarGraph(valueType: ControlValues): void {
+        let valueToShow = 0
+        let maxValue = 100
+        
+        switch (valueType) {
+            case ControlValues.XValue:
+                valueToShow = control_x_value
+                maxValue = 180
+                break
+            case ControlValues.Control:
+                valueToShow = control_value
+                break
         }
         
         led.plotBarGraph(valueToShow, maxValue)
