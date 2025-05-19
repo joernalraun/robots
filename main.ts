@@ -1,5 +1,8 @@
 /**
- * Robots Bluetooth-Steuerung
+ * LOFI ROBOT Bluetooth-Steuerung
+ * @author Calliope X LOFI ROBOT
+ * @color #ff6900
+ * @icon "\uf278"
  */
 
 enum RobotAppType {
@@ -30,7 +33,7 @@ enum FaceValues {
     Roll,
     //% block="Smile"
     Smile,
-    //% block="Face Visible"
+    //% block="Face-Visible"
     FaceVisible
 }
 
@@ -41,7 +44,7 @@ enum ControlValues {
     Control
 }
 
-namespace robots {
+namespace LofiRobot {
     // Face-App Variablen
     let face_x = 0
     let face_y = 0
@@ -54,31 +57,46 @@ namespace robots {
     let face_roll = 0
     let face_smile = 0
     let face_visible = 0
+    let face_app_enabled = false
 
     // Control Variablen
     let control_x_value = 0
     let control_command = ""
     let control_value = 0
+    let control_app_enabled = false
 
     let receivedString = ""
-    let currentApp = RobotAppType.FaceApp
     let bluetoothStarted = false
+    let data_handler: () => void = null
+    let current_app_type: RobotAppType = null
 
     /**
-     * Starte den Bluetooth-Dienst für die Robotersteuerung
+     * Initialisiere die Bluetooth-Steuerung für die ausgewählte App
+     * @param appType Wähle die App (Face-App oder Control)
      */
-    //% block="Starte Bluetooth"
+    //% block="Initialisiere %appType"
     //% weight=100
-    export function startBluetooth(): void {
+    export function initializeApp(appType: RobotAppType): void {
         if (!bluetoothStarted) {
             bluetooth.startUartService()
             basic.showIcon(IconNames.Square)
             bluetoothStarted = true
         }
+
+        if (appType === RobotAppType.FaceApp) {
+            face_app_enabled = true
+            basic.showString("F")
+        } else if (appType === RobotAppType.Control) {
+            control_app_enabled = true
+            basic.showString("C")
+        }
+
+        // Bluetooth-Empfangsfunktion einrichten, falls noch nicht geschehen
+        setupBluetoothReceive()
     }
 
     /**
-     * Wird ausgeführt, wenn eine Bluetooth-Verbindung hergestellt wurde
+     * Wird ausgeführt, wenn Bluetooth-Daten empfangen werden
      * @param handler Code, der ausgeführt werden soll
      */
     //% block="wenn Bluetooth verbunden"
@@ -97,61 +115,104 @@ namespace robots {
         bluetooth.onBluetoothDisconnected(handler)
     }
 
-    /**
-     * Wird ausgeführt, wenn Bluetooth-Daten empfangen werden
-     * @param appType Wähle die App (Face-App oder Control)
-     * @param handler Code, der ausgeführt werden soll
-     */
-    //% block="wenn Bluetooth-Daten empfangen %appType"
-    //% weight=70
-    export function onUartDataReceived(appType: RobotAppType, handler: () => void): void {
-        currentApp = appType
-        
+    // Private Funktion zur Einrichtung des Bluetooth-Empfangs
+    function setupBluetoothReceive(): void {
         bluetooth.onUartDataReceived(serial.delimiters(Delimiters.NewLine), () => {
             receivedString = bluetooth.uartReadUntil(serial.delimiters(Delimiters.NewLine))
-            
-            if (currentApp === RobotAppType.FaceApp) {
-                // Face-App Datenverarbeitung
-                face_x = parseFloat(receivedString.substr(0, 2))
-                face_y = parseFloat(receivedString.substr(2, 2))
-                face_z = parseFloat(receivedString.substr(4, 2))
-                face_yaw = parseFloat(receivedString.substr(6, 2))
-                face_pitch = parseFloat(receivedString.substr(8, 2))
-                face_mouth = parseFloat(receivedString.substr(10, 2))
-                face_left_eye = parseFloat(receivedString.substr(12, 2))
-                face_right_eye = parseFloat(receivedString.substr(14, 2))
-                face_roll = parseFloat(receivedString.substr(16, 1))
-                face_smile = parseFloat(receivedString.substr(17, 1))
-                face_visible = parseFloat(receivedString.substr(18, 1))
-            } else if (currentApp === RobotAppType.Control) {
-                // Control-App Verarbeitung
-                control_command = receivedString
-                if (receivedString === "up") {
-                    basic.showIcon(IconNames.ArrowNorth)
-                    control_value = 100
-                } else if (receivedString === "down") {
-                    basic.showIcon(IconNames.ArrowSouth)
-                    control_value = 50
-                } else if (receivedString === "left") {
-                    basic.showIcon(IconNames.ArrowWest)
-                    control_value = 25
-                } else if (receivedString === "right") {
-                    basic.showIcon(IconNames.ArrowEast)
-                    control_value = 75
-                } else if (receivedString === "horn") {
-                    basic.showIcon(IconNames.EighthNote)
-                    control_value = 90
-                } else if (receivedString === "stop") {
-                    basic.showIcon(IconNames.SmallSquare)
-                    control_value = 0
-                } else if (receivedString.charAt(0) === "x" || receivedString.charAt(0) === "c") {
-                    control_x_value = parseFloat(receivedString.substr(1, 3))
-                    led.plotBarGraph(control_x_value, 180)
+
+            // Für Face-App: Prüfe ob String die richtige Länge hat und ob Zahlen vorhanden sind
+            if (face_app_enabled && receivedString.length >= 19) {
+                let hasNumbers = /\d/.test(receivedString.substr(0, 5))
+                if (hasNumbers) {
+                    processFaceAppData()
+                    current_app_type = RobotAppType.FaceApp
+                    if (data_handler) {
+                        data_handler()
+                    }
                 }
             }
-            
-            handler()
+
+            // Für Control: Prüfe ob String Kommandos enthält
+            if (control_app_enabled) {
+                if (receivedString === "up" ||
+                    receivedString === "down" ||
+                    receivedString === "left" ||
+                    receivedString === "right" ||
+                    receivedString === "horn" ||
+                    receivedString === "stop" ||
+                    receivedString.charAt(0) === "x" ||
+                    receivedString.charAt(0) === "c") {
+
+                    processControlData()
+                    current_app_type = RobotAppType.Control
+                    if (data_handler) {
+                        data_handler()
+                    }
+                }
+            }
         })
+    }
+
+    /**
+     * Verarbeitet Face-App Daten aus dem empfangenen String
+     */
+    function processFaceAppData(): void {
+        face_x = parseFloat(receivedString.substr(0, 2))
+        face_y = parseFloat(receivedString.substr(2, 2))
+        face_z = parseFloat(receivedString.substr(4, 2))
+        face_yaw = parseFloat(receivedString.substr(6, 2))
+        face_pitch = parseFloat(receivedString.substr(8, 2))
+        face_mouth = parseFloat(receivedString.substr(10, 2))
+        face_left_eye = parseFloat(receivedString.substr(12, 2))
+        face_right_eye = parseFloat(receivedString.substr(14, 2))
+        face_roll = parseFloat(receivedString.substr(16, 1))
+        face_smile = parseFloat(receivedString.substr(17, 1))
+        face_visible = parseFloat(receivedString.substr(18, 1))
+    }
+
+    /**
+     * Verarbeitet Control-Daten aus dem empfangenen String
+     */
+    function processControlData(): void {
+        control_command = receivedString
+        if (receivedString === "up") {
+            basic.showIcon(IconNames.ArrowNorth)
+            control_value = 100
+        } else if (receivedString === "down") {
+            basic.showIcon(IconNames.ArrowSouth)
+            control_value = 50
+        } else if (receivedString === "left") {
+            basic.showIcon(IconNames.ArrowWest)
+            control_value = 25
+        } else if (receivedString === "right") {
+            basic.showIcon(IconNames.ArrowEast)
+            control_value = 75
+        } else if (receivedString === "horn") {
+            basic.showIcon(IconNames.EighthNote)
+            control_value = 90
+        } else if (receivedString === "stop") {
+            basic.showIcon(IconNames.SmallSquare)
+            control_value = 0
+        } else if (receivedString.charAt(0) === "x" || receivedString.charAt(0) === "c") {
+            control_x_value = parseFloat(receivedString.substr(1, 3))
+        }
+    }
+
+    /**
+     * Wird ausgeführt, wenn Daten empfangen werden
+     * @param handler Code, der ausgeführt werden soll
+     */
+    //% block="steuere Roboter mit empfangenen Daten"
+    //% weight=70
+    export function onDataReceived(handler: () => void): void {
+        data_handler = handler
+    }
+
+    /**
+     * Gibt das aktuelle Control-Kommando zurück
+     */
+    export function getControlCommand(): string {
+        return control_command
     }
 
     /**
@@ -159,11 +220,11 @@ namespace robots {
      * @param valueType Wähle den Face-App Wert, der angezeigt werden soll
      */
     //% block="zeige Säulendiagramm für Face-App Wert %valueType"
-    //% weight=60
+    //% weight=55
     export function showFaceBarGraph(valueType: FaceValues): void {
         let valueToShow = 0
         let maxValue = 100
-        
+
         switch (valueType) {
             case FaceValues.X:
                 valueToShow = face_x
@@ -199,30 +260,7 @@ namespace robots {
                 valueToShow = face_visible
                 break
         }
-        
-        led.plotBarGraph(valueToShow, maxValue)
-    }
 
-    /**
-     * Zeigt ein Säulendiagramm mit dem gewählten Control Wert an
-     * @param valueType Wähle den Control Wert, der angezeigt werden soll
-     */
-    //% block="zeige Säulendiagramm für Control Wert %valueType"
-    //% weight=55
-    export function showControlBarGraph(valueType: ControlValues): void {
-        let valueToShow = 0
-        let maxValue = 100
-        
-        switch (valueType) {
-            case ControlValues.XValue:
-                valueToShow = control_x_value
-                maxValue = 180
-                break
-            case ControlValues.Control:
-                valueToShow = control_value
-                break
-        }
-        
         led.plotBarGraph(valueToShow, maxValue)
     }
 
@@ -276,10 +314,5 @@ namespace robots {
             default:
                 return 0
         }
-    }
-
-    // Interne Funktion - nicht als Block verfügbar
-    function getLastCommand(): string {
-        return receivedString
     }
 }
