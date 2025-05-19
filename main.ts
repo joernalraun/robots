@@ -1,6 +1,6 @@
 /**
  * LOFI ROBOT Bluetooth-Steuerung
- * @author Calliope X LOFI ROBOT
+ * @author LOFIROBOT
  * @color #ff6900
  * @icon "\uf278"
  */
