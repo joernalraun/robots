@@ -1,6 +1,6 @@
 /**
  * LOFI ROBOT Bluetooth-Steuerung
- * @author LOFIROBOT
+ * @author Calliope X LOFI ROBOT
  * @color #ff6900
  * @icon "\uf278"
  */
@@ -67,7 +67,7 @@ namespace LofiRobot {
 
     let receivedString = ""
     let bluetoothStarted = false
-    let data_handler: () => void = null
+    let data_received_handler: () => void = null
     let current_app_type: RobotAppType = null
 
     /**
@@ -99,7 +99,7 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn Bluetooth-Daten empfangen werden
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="wenn Bluetooth verbunden"
+    //% block="wenn Daten gesendet werden"
     //% weight=90
     export function onBluetoothConnected(handler: () => void): void {
         bluetooth.onBluetoothConnected(handler)
@@ -109,7 +109,7 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn eine Bluetooth-Verbindung getrennt wurde
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="wenn Bluetooth getrennt"
+    //% block="wenn Daten nicht empfangen werden"
     //% weight=80
     export function onBluetoothDisconnected(handler: () => void): void {
         bluetooth.onBluetoothDisconnected(handler)
@@ -126,9 +126,6 @@ namespace LofiRobot {
                 if (hasNumbers) {
                     processFaceAppData()
                     current_app_type = RobotAppType.FaceApp
-                    if (data_handler) {
-                        data_handler()
-                    }
                 }
             }
 
@@ -145,10 +142,11 @@ namespace LofiRobot {
 
                     processControlData()
                     current_app_type = RobotAppType.Control
-                    if (data_handler) {
-                        data_handler()
-                    }
                 }
+            }
+
+            if (data_received_handler) {
+                data_received_handler()
             }
         })
     }
@@ -202,10 +200,10 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn Daten empfangen werden
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="steuere Roboter mit empfangenen Daten"
+    //% block="steuere Roboter, wenn Daten empfangen"
     //% weight=70
     export function onDataReceived(handler: () => void): void {
-        data_handler = handler
+        data_received_handler = handler
     }
 
     /**
