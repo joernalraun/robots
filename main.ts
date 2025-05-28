@@ -99,7 +99,7 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn Bluetooth-Daten empfangen werden
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="wenn Daten gesendet werden"
+    //% block="wenn Daten empfangen werden"
     //% weight=90
     export function onBluetoothConnected(handler: () => void): void {
         bluetooth.onBluetoothConnected(handler)
