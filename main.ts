@@ -122,7 +122,7 @@ namespace LofiRobot {
 
             // Für Face-App: Prüfe ob String die richtige Länge hat und ob Zahlen vorhanden sind
             if (face_app_enabled && receivedString.length >= 19) {
-                let hasNumbers = /\d/.test(receivedString.substr(0, 5))
+                let hasNumbers = parseInt(receivedString) >= 0
                 if (hasNumbers) {
                     processFaceAppData()
                     current_app_type = RobotAppType.FaceApp
