@@ -1,9 +1,9 @@
 /**
  * LOFI ROBOT Bluetooth-Steuerung
  * @author Calliope X LOFI ROBOT
- * @color #ff6900
- * @icon "\uf278"
  */
+
+//% color=#ff6900 icon="\uf278"
 
 enum RobotAppType {
     //% block="Face-App"
