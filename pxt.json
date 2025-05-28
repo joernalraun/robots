@@ -1,6 +1,6 @@
 {
-    "name": "Robots",
-    "description": "",
+    "name": "Lofi Robot",
+    "description": "Lofi Robot Cardboard Extension",
     "dependencies": {
         "core": "*",
         "v3": "*",
