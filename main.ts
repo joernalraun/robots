@@ -1,9 +1,7 @@
 /**
- * LOFI ROBOT Bluetooth-Steuerung
- * @author Calliope X LOFI ROBOT
+ * LOFI ROBOT Bluetooth
  */
-
-//% color=#ff6900 icon="\uf278"
+//% weight=20 color=#ff6900 icon="\uf278"
 
 enum RobotAppType {
     //% block="Face-App"
@@ -99,7 +97,7 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn Bluetooth-Daten empfangen werden
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="wenn Daten empfangen werden"
+    //% block="wenn Bluetooth empfang"
     //% weight=90
     export function onBluetoothConnected(handler: () => void): void {
         bluetooth.onBluetoothConnected(handler)
@@ -109,7 +107,7 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn eine Bluetooth-Verbindung getrennt wurde
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="wenn Daten nicht empfangen werden"
+    //% block="wenn Bluetooth getrennt"
     //% weight=80
     export function onBluetoothDisconnected(handler: () => void): void {
         bluetooth.onBluetoothDisconnected(handler)
@@ -200,7 +198,7 @@ namespace LofiRobot {
      * Wird ausgeführt, wenn Daten empfangen werden
      * @param handler Code, der ausgeführt werden soll
      */
-    //% block="steuere Roboter, wenn Daten empfangen"
+    //% block="Roboterverbindung"
     //% weight=70
     export function onDataReceived(handler: () => void): void {
         data_received_handler = handler
