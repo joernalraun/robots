@@ -1,7 +1,7 @@
 /**
  * LOFI ROBOT Bluetooth
  */
-//% weight=20 color=#ff6900 icon="\uf278"
+//% weight=20 color=#ff6900 icon="\uf118"
 
 enum RobotAppType {
     //% block="Face-App"
